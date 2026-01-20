@@ -1,0 +1,14 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^analysis$
+^code$
+^output$
+^analysis_data$
+^public$
+^scratch$
+^doc$
+^Meta$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$

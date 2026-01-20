@@ -1,0 +1,34 @@
+Package: GFA
+Title: Genetic Factor Analysis (GFA)
+Version: 1.0.0.0449
+Date: 2025-11-21
+Authors@R: 
+    person(given = "Jean",
+           family = "Morrison",
+           role = c("aut", "cre"),
+           email = "jvmorr@umich.edu")
+Description: This package implements Genetic Factor Analysis, a method for analysis of high dimensional or multivariate genetic data. GFA can be used to infer latent heritable factors contributing to high dimensional phenotypes. 
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.3
+Imports: 
+  flashier (>= 1.0.56),
+  ebnm (>= 1.1-34),
+  dplyr, 
+  readr, 
+  reshape2,
+  intervals,
+  purrr, 
+  lpSolve,
+  ggplot2
+Suggests: 
+  rmarkdown,
+  knitr
+Remotes:
+  willwerscheid/flashier,
+  stephenslab/ebnm
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
+URL: https://jean997.github.io/GFA/
