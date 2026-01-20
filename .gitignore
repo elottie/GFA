@@ -5,7 +5,7 @@
 .Rapp.history
 .DS_Store
 
-.csv
-.tsv
-.RDS
-.log
+*.csv
+*.tsv
+*.RDS
+*.log
