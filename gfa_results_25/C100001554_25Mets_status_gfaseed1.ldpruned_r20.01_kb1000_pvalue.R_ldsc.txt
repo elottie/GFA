@@ -1,0 +1,2 @@
+Algorithm is converged after 1 rounds of backfitting.
+

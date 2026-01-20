@@ -1,0 +1,561 @@
+in format_flat_chrom.sh:
++ source get_col.sh
+++ [[ get_col.sh == \f\o\r\m\a\t\_\f\l\a\t\_\c\h\r\o\m\.\s\h ]]
++ source gwas_format.sh
+++ set -x
+++ source get_col.sh
++++ [[ get_col.sh == \f\o\r\m\a\t\_\f\l\a\t\_\c\h\r\o\m\.\s\h ]]
+++ [[ gwas_format.sh == \f\o\r\m\a\t\_\f\l\a\t\_\c\h\r\o\m\.\s\h ]]
++ echo ' - loaded modules'
+ - loaded modules
++ set -euo pipefail
++ trap 'echo "script failed with exit code $? at line $LINENO" >&2' ERR
++ echo ' - set pipefail'
+ - set pipefail
++ file=/nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
++ chrom=1
++ af_thresh=0.05
++ snp_name=RSID
++ pos_name=GENPOS
++ chrom_name=CHROM
++ A1_name=ALLELE1
++ A2_name=ALLELE0
++ beta_hat_name=BETA
++ se_name=SE
++ p_value_name=LOG10P
++ af_name=A1FREQ
++ sample_size_name=N
++ effect_is_or=FALSE
++ output=C100001554_format_flat_chrom.tsv
++ echo ' - read function inputs'
+ - read function inputs
++ parse_header /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
++ local file=/nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
++ [[ ! -r /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz ]]
++ [[ /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz == *.gz ]]
+++ awk 'NR==1 {print; exit}' /dev/fd/63
++++ gzip -cd /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
++ header='RSID	CHROM	GENPOS	ID	ALLELE0	ALLELE1	A1FREQ	INFO	N	TEST	BETA	SE	CHISQ	LOG10P	EXTRA'
++ [[ -z RSID	CHROM	GENPOS	ID	ALLELE0	ALLELE1	A1FREQ	INFO	N	TEST	BETA	SE	CHISQ	LOG10P	EXTRA ]]
++ IFS='	'
++ read -r -a cols
++ declare -gA col_indices
++ for i in "${!cols[@]}"
++ colname=RSID
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo RSID
++ colname=RSID
++ col_indices[$colname]=1
++ for i in "${!cols[@]}"
++ colname=CHROM
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo CHROM
++ colname=CHROM
++ col_indices[$colname]=2
++ for i in "${!cols[@]}"
++ colname=GENPOS
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo GENPOS
++ colname=GENPOS
++ col_indices[$colname]=3
++ for i in "${!cols[@]}"
++ colname=ID
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo ID
++ colname=ID
++ col_indices[$colname]=4
++ for i in "${!cols[@]}"
++ colname=ALLELE0
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo ALLELE0
++ colname=ALLELE0
++ col_indices[$colname]=5
++ for i in "${!cols[@]}"
++ colname=ALLELE1
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo ALLELE1
++ colname=ALLELE1
++ col_indices[$colname]=6
++ for i in "${!cols[@]}"
++ colname=A1FREQ
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo A1FREQ
++ colname=A1FREQ
++ col_indices[$colname]=7
++ for i in "${!cols[@]}"
++ colname=INFO
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo INFO
++ colname=INFO
++ col_indices[$colname]=8
++ for i in "${!cols[@]}"
++ colname=N
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo N
++ colname=N
++ col_indices[$colname]=9
++ for i in "${!cols[@]}"
++ colname=TEST
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo TEST
++ colname=TEST
++ col_indices[$colname]=10
++ for i in "${!cols[@]}"
++ colname=BETA
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo BETA
++ colname=BETA
++ col_indices[$colname]=11
++ for i in "${!cols[@]}"
++ colname=SE
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo SE
++ colname=SE
++ col_indices[$colname]=12
++ for i in "${!cols[@]}"
++ colname=CHISQ
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo CHISQ
++ colname=CHISQ
++ col_indices[$colname]=13
++ for i in "${!cols[@]}"
++ colname=LOG10P
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo LOG10P
++ colname=LOG10P
++ col_indices[$colname]=14
++ for i in "${!cols[@]}"
++ colname=EXTRA
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo EXTRA
++ colname=EXTRA
++ col_indices[$colname]=15
++ return 0
+++ get_col RSID
+++ local name=RSID
+++ [[ RSID != '' ]]
+++ [[ RSID != \N\A ]]
+++ [[ -v col_indices[RSID] ]]
+++ echo 1
++ snp_col_ind=1
+++ get_col GENPOS
+++ local name=GENPOS
+++ [[ GENPOS != '' ]]
+++ [[ GENPOS != \N\A ]]
+++ [[ -v col_indices[GENPOS] ]]
+++ echo 3
++ pos_col_ind=3
+++ get_col CHROM
+++ local name=CHROM
+++ [[ CHROM != '' ]]
+++ [[ CHROM != \N\A ]]
+++ [[ -v col_indices[CHROM] ]]
+++ echo 2
++ chrom_col_ind=2
+++ get_col ALLELE1
+++ local name=ALLELE1
+++ [[ ALLELE1 != '' ]]
+++ [[ ALLELE1 != \N\A ]]
+++ [[ -v col_indices[ALLELE1] ]]
+++ echo 6
++ A1_col_ind=6
+++ get_col ALLELE0
+++ local name=ALLELE0
+++ [[ ALLELE0 != '' ]]
+++ [[ ALLELE0 != \N\A ]]
+++ [[ -v col_indices[ALLELE0] ]]
+++ echo 5
++ A2_col_ind=5
+++ get_col BETA
+++ local name=BETA
+++ [[ BETA != '' ]]
+++ [[ BETA != \N\A ]]
+++ [[ -v col_indices[BETA] ]]
+++ echo 11
++ beta_col_ind=11
+++ get_col SE
+++ local name=SE
+++ [[ SE != '' ]]
+++ [[ SE != \N\A ]]
+++ [[ -v col_indices[SE] ]]
+++ echo 12
++ se_col_ind=12
+++ get_col LOG10P
+++ local name=LOG10P
+++ [[ LOG10P != '' ]]
+++ [[ LOG10P != \N\A ]]
+++ [[ -v col_indices[LOG10P] ]]
+++ echo 14
++ p_col_ind=14
+++ get_col A1FREQ
+++ local name=A1FREQ
+++ [[ A1FREQ != '' ]]
+++ [[ A1FREQ != \N\A ]]
+++ [[ -v col_indices[A1FREQ] ]]
+++ echo 7
++ af_col_ind=7
+++ get_col N
+++ local name=N
+++ [[ N != '' ]]
+++ [[ N != \N\A ]]
+++ [[ -v col_indices[N] ]]
+++ echo 9
++ ss_col_ind=9
++ echo ' - parsed gwas file header'
+ - parsed gwas file header
++ echo 'Mem used after step 1: parsing gwas file header'
++ awk '/VmRSS/{print}' /proc/self/status
+++ mktemp
++ file_filt=/tmp/tmp.XEqsvrXBsR
++ [[ /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz == *.gz ]]
++ awk '-F\t' -v snp_col=1 '
+            NR==1 {print; next}
+            {count[$snp_col]++; lines[NR]=$0; keys[NR]=$snp_col}
+            END {for (i=2; i<=NR; i++) if (count[keys[i]]==1) print lines[i]}
+      '
++ awk '-F\t' -v col=2 -v chrom=1 'NR==1 || $col == chrom'
++ gzip -cd /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
++ echo 'Mem used after step 2b: read and filter gwas file'
++ awk '/VmRSS/{print}' /proc/self/status
++++ dirname /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
+++ basename /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554
++ parentdir=C100001554
+++ basename /nfs/turbo/sph-jvmorr/gwas_summary_statistics/METSIM/with_rsid/C100001554/C100001554_regenie_rsid.tsv.gz
++ fname=C100001554_regenie_rsid.tsv.gz
++ fname_noext=C100001554_regenie_rsid
++ harmon=C100001554_regenie_rsid_chrom1_harmon_snps.tsv
++ awk '-F\t' -v af_col=7 -v af_thresh=0.05 'NR==1 {print; next} ($af_col > af_thresh && $af_col < (1 - af_thresh)) {print}' /tmp/tmp.XEqsvrXBsR
++ '[' false = true ']'
++ cp /tmp/tmp.XEqsvrXBsR_af_filt /tmp/tmp.XEqsvrXBsR_final
++ beta_hat=BETA
++ head /tmp/tmp.XEqsvrXBsR_final
+RSID	CHROM	GENPOS	ID	ALLELE0	ALLELE1	A1FREQ	INFO	N	TEST	BETA	SE	CHISQ	LOG10P	EXTRA
+rs11166389	1	100000723	1:100000723:G:A	G	A	0.0606195	1	9040	ADD	-0.00419287	0.0282127	0.0220867	0.054602	NA
+rs3003377	1	10000458	1:10000458:T:C	T	C	0.782243	1	8971	ADD	0.00166499	0.0164153	0.0102879	0.0365854	NA
+rs11166391	1	100004881	1:100004881:A:G	A	G	0.0675945	1	9017	ADD	-0.0549252	0.0269096	4.1661	1.38468	NA
+rs564562	1	100006010	1:100006010:T:C	T	C	0.0604286	1	9052	ADD	-0.00849371	0.0282038	0.0906942	0.117307	NA
+rs534252	1	100007048	1:100007048:A:G	A	G	0.109866	1	9061	ADD	-0.0231698	0.0215107	1.16021	0.550641	NA
+rs113658116	1	100007750	1:100007750:G:A	G	A	0.0557472	1	8987	ADD	-0.0392142	0.0297855	1.73331	0.725868	NA
+rs526128	1	100007871	1:100007871:T:A	T	A	0.108623	1	8953	ADD	-0.0293285	0.0217372	1.82043	0.751384	NA
+rs3128113	1	1000079	1:1000079:A:G	A	G	0.776316	1	9082	ADD	0.024278	0.0163676	2.20015	0.860128	NA
+rs522696	1	100011106	1:100011106:G:A	G	A	0.109534	1	9020	ADD	-0.0201029	0.0215978	0.86636	0.4535	NA
++ gwas_format /tmp/tmp.XEqsvrXBsR_final out.tsv RSID BETA SE ALLELE1 ALLELE0 CHROM GENPOS LOG10P N A1FREQ TRUE
++ local input=/tmp/tmp.XEqsvrXBsR_final
++ shift
++ local output=out.tsv
++ shift
++ local SNP_COL=RSID
++ shift
++ local BETA_COL=BETA
++ shift
++ local SE_COL=SE
++ shift
++ local A1_COL=ALLELE1
++ shift
++ local A2_COL=ALLELE0
++ shift
++ local CHROM_COL=CHROM
++ shift
++ local POS_COL=GENPOS
++ shift
++ local PVALUE_COL=LOG10P
++ shift
++ local SAMPLESIZE_COL=N
++ shift
++ local AF_COL=A1FREQ
++ shift
++ local compute_pval=TRUE
++ shift
+++ mktemp
++ TMP=/tmp/tmp.SbrrPIkQku
++ parse_header /tmp/tmp.XEqsvrXBsR_final
++ local file=/tmp/tmp.XEqsvrXBsR_final
++ [[ ! -r /tmp/tmp.XEqsvrXBsR_final ]]
++ [[ /tmp/tmp.XEqsvrXBsR_final == *.gz ]]
+++ awk 'NR==1 {print; exit}' /tmp/tmp.XEqsvrXBsR_final
++ header='RSID	CHROM	GENPOS	ID	ALLELE0	ALLELE1	A1FREQ	INFO	N	TEST	BETA	SE	CHISQ	LOG10P	EXTRA'
++ [[ -z RSID	CHROM	GENPOS	ID	ALLELE0	ALLELE1	A1FREQ	INFO	N	TEST	BETA	SE	CHISQ	LOG10P	EXTRA ]]
++ IFS='	'
++ read -r -a cols
++ declare -gA col_indices
++ for i in "${!cols[@]}"
++ colname=RSID
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo RSID
++ colname=RSID
++ col_indices[$colname]=1
++ for i in "${!cols[@]}"
++ colname=CHROM
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo CHROM
++ colname=CHROM
++ col_indices[$colname]=2
++ for i in "${!cols[@]}"
++ colname=GENPOS
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo GENPOS
++ colname=GENPOS
++ col_indices[$colname]=3
++ for i in "${!cols[@]}"
++ colname=ID
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo ID
++ colname=ID
++ col_indices[$colname]=4
++ for i in "${!cols[@]}"
++ colname=ALLELE0
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo ALLELE0
++ colname=ALLELE0
++ col_indices[$colname]=5
++ for i in "${!cols[@]}"
++ colname=ALLELE1
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo ALLELE1
++ colname=ALLELE1
++ col_indices[$colname]=6
++ for i in "${!cols[@]}"
++ colname=A1FREQ
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo A1FREQ
++ colname=A1FREQ
++ col_indices[$colname]=7
++ for i in "${!cols[@]}"
++ colname=INFO
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo INFO
++ colname=INFO
++ col_indices[$colname]=8
++ for i in "${!cols[@]}"
++ colname=N
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo N
++ colname=N
++ col_indices[$colname]=9
++ for i in "${!cols[@]}"
++ colname=TEST
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo TEST
++ colname=TEST
++ col_indices[$colname]=10
++ for i in "${!cols[@]}"
++ colname=BETA
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo BETA
++ colname=BETA
++ col_indices[$colname]=11
++ for i in "${!cols[@]}"
++ colname=SE
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo SE
++ colname=SE
++ col_indices[$colname]=12
++ for i in "${!cols[@]}"
++ colname=CHISQ
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo CHISQ
++ colname=CHISQ
++ col_indices[$colname]=13
++ for i in "${!cols[@]}"
++ colname=LOG10P
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo LOG10P
++ colname=LOG10P
++ col_indices[$colname]=14
++ for i in "${!cols[@]}"
++ colname=EXTRA
+++ sed 's/^[`"'\'' ]*//;s/[`"'\'' ]*$//'
+++ echo EXTRA
++ colname=EXTRA
++ col_indices[$colname]=15
++ return 0
+++ get_col RSID
+++ local name=RSID
+++ [[ RSID != '' ]]
+++ [[ RSID != \N\A ]]
+++ [[ -v col_indices[RSID] ]]
+++ echo 1
++ local snp_col=1
+++ get_col BETA
+++ local name=BETA
+++ [[ BETA != '' ]]
+++ [[ BETA != \N\A ]]
+++ [[ -v col_indices[BETA] ]]
+++ echo 11
++ local beta_col=11
+++ get_col SE
+++ local name=SE
+++ [[ SE != '' ]]
+++ [[ SE != \N\A ]]
+++ [[ -v col_indices[SE] ]]
+++ echo 12
++ local se_col=12
+++ get_col ALLELE1
+++ local name=ALLELE1
+++ [[ ALLELE1 != '' ]]
+++ [[ ALLELE1 != \N\A ]]
+++ [[ -v col_indices[ALLELE1] ]]
+++ echo 6
++ local a1_col=6
+++ get_col ALLELE0
+++ local name=ALLELE0
+++ [[ ALLELE0 != '' ]]
+++ [[ ALLELE0 != \N\A ]]
+++ [[ -v col_indices[ALLELE0] ]]
+++ echo 5
++ local a2_col=5
+++ get_col CHROM
+++ local name=CHROM
+++ [[ CHROM != '' ]]
+++ [[ CHROM != \N\A ]]
+++ [[ -v col_indices[CHROM] ]]
+++ echo 2
++ local chrom_col=2
+++ get_col GENPOS
+++ local name=GENPOS
+++ [[ GENPOS != '' ]]
+++ [[ GENPOS != \N\A ]]
+++ [[ -v col_indices[GENPOS] ]]
+++ echo 3
++ local pos_col=3
+++ get_col LOG10P
+++ local name=LOG10P
+++ [[ LOG10P != '' ]]
+++ [[ LOG10P != \N\A ]]
+++ [[ -v col_indices[LOG10P] ]]
+++ echo 14
++ local p_col=14
+++ get_col N
+++ local name=N
+++ [[ N != '' ]]
+++ [[ N != \N\A ]]
+++ [[ -v col_indices[N] ]]
+++ echo 9
++ local ss_col=9
+++ get_col A1FREQ
+++ local name=A1FREQ
+++ [[ A1FREQ != '' ]]
+++ [[ A1FREQ != \N\A ]]
+++ [[ -v col_indices[A1FREQ] ]]
+++ echo 7
++ local af_col=7
++ csvtk -t headers /tmp/tmp.XEqsvrXBsR_final
+RSID
+CHROM
+GENPOS
+ID
+ALLELE0
+ALLELE1
+A1FREQ
+INFO
+N
+TEST
+BETA
+SE
+CHISQ
+LOG10P
+EXTRA
++ awk -v snp_col=1 -v beta_col=11 -v se_col=12 -v a1_col=6 -v a2_col=5 -v chrom_col=2 -v pos_col=3 -v p_col=14 -v ss_col=9 -v af_col=7 'NR==1{
+      $snp_col="snp";
+      $beta_col="beta_hat";
+      $se_col="se";
+      $a1_col="A1";
+      $a2_col="A2";
+      $chrom_col="chrom";
+      $pos_col="pos";
+      $p_col="p_value";
+      $ss_col="sample_size";
+      $af_col="allele_freq";
+      print; next
+    }
+    {
+      $a1_col = toupper($a1_col);
+      $a2_col = toupper($a2_col);
+      print;
+    }' 'OFS=\t' /tmp/tmp.XEqsvrXBsR_final
++ awk '-F\t' -v a1_col=6 -v a2_col=5 '
+    NR==1 {print; next}
+    ($a1_col=="A" || $a1_col=="C" || $a1_col=="G" || $a1_col=="T") &&
+    ($a2_col=="A" || $a2_col=="C" || $a2_col=="G" || $a2_col=="T")
+    ' /tmp/tmp.SbrrPIkQku
++ awk '-F\t' -v a1_col=6 -v a2_col=5 '
+    NR==1 {print; next}
+    !( (($a1_col=="A" && $a2_col=="T") || ($a1_col=="T" && $a2_col=="A")) ||
+       (($a1_col=="G" && $a2_col=="C") || ($a1_col=="C" && $a2_col=="G")) )
+    {print}
+    ' /tmp/tmp.SbrrPIkQku.legal
++ awk '-F\t' -v snp_col=1 'NR==1 {print; next} !a[$snp_col]++' /tmp/tmp.SbrrPIkQku.unambig
++ [[ TRUE == \T\R\U\E ]]
++ compute_pvalue /tmp/tmp.SbrrPIkQku.nodup /tmp/tmp.SbrrPIkQku.pval
++ local infile=/tmp/tmp.SbrrPIkQku.nodup
++ local outfile=/tmp/tmp.SbrrPIkQku.pval
++ awk '-F\t' '
+    BEGIN{OFS="\t"} NR==1 {for(i=1;i<=NF;i++) idx[$i]=i; print; next}
+    {
+        # If p_value is missing and beta/se are present
+        if ($idx["p_value"] == "" || $idx["p_value"] == "NA") {
+            b = $idx["beta_hat"]
+            s = $idx["se"]
+
+            # Check if se is blank, NA, or 0
+            if (s == "" || s == "NA" || s == 0) {
+                $idx["p_value"] = "NA"
+            } else {
+                z = b / s
+                p = 2 * (1 - systat(z))
+                $idx["p_value"] = p
+            }
+        }
+        print
+    }
+    function systat(z){return 0.5*erfc(-z/sqrt(2));}
+    function erfc(x){return 1 - erf(x)}
+    function erf(x){
+      a1=0.254829592; a2=-0.284496736; a3=1.421413741; a4=-1.453152027; a5=1.061405429; p=0.3275911;
+      sign=1; if(x<0) sign=-1; x=abs(x); t=1.0/(1.0+p*x);
+      y=1.0-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*exp(-x*x)
+      return sign*y
+    }
+    ' /tmp/tmp.SbrrPIkQku.nodup
++ cp /tmp/tmp.SbrrPIkQku.pval /tmp/tmp.SbrrPIkQku.nodup.step
++ flip_alleles /tmp/tmp.SbrrPIkQku.nodup.step out.tsv 6 5 11 7
++ local infile=/tmp/tmp.SbrrPIkQku.nodup.step
++ local outfile=out.tsv
++ local a1_col=6
++ local a2_col=5
++ local beta_col=11
++ local af_col=7
++ awk '-F\t' -v a1_col=6 -v a2_col=5 -v beta_col=11 -v af_col=7 -v 'OFS=\t' '
+    function flip_allele(x) {
+      return (x == "A") ? "T" : (x == "T") ? "A" : (x == "G") ? "C" : (x == "C") ? "G" : x
+    }
+    NR==1 {print $0; next}
+    {
+      A1 = $a1_col; A2 = $a2_col
+      if (A1 == "T" || A2 == "T") {
+        A1f = flip_allele(A1); A2f = flip_allele(A2)
+      } else {
+        A1f = A1; A2f = A2
+      }
+      if (A1f == "A") {
+        eA1 = A1f; eA2 = A2f; new_beta = $beta_col
+        if (af_col) new_af = ($af_col != "") ? $af_col : ""
+      } else {
+        eA1 = A2f; eA2 = A1f; new_beta = -$beta_col
+        if (af_col) new_af = ($af_col != "") ? 1-$af_col : ""
+      }
+      for (i=1; i<=NF; i++) {
+        if (i == a1_col) printf "%s", eA1
+        else if (i == a2_col) printf "%s", eA2
+        else if (i == beta_col) printf "%s", new_beta
+        else if (af_col && i == af_col) printf "%s", new_af
+        else printf "%s", $i
+        printf (i == NF ? "\n" : OFS)
+      }
+    }
+    ' /tmp/tmp.SbrrPIkQku.nodup.step
++ rm -f /tmp/tmp.SbrrPIkQku /tmp/tmp.SbrrPIkQku.legal /tmp/tmp.SbrrPIkQku.unambig /tmp/tmp.SbrrPIkQku.nodup /tmp/tmp.SbrrPIkQku.pval /tmp/tmp.SbrrPIkQku.nodup.step
++ echo 'Formatted GWAS file written to out.tsv'
+Formatted GWAS file written to out.tsv
++ echo ' - formatted output written to out.tsv'
+ - formatted output written to out.tsv

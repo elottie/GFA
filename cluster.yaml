@@ -1,0 +1,26 @@
+# cluster.yaml is only used in snakemake <8
+# for snakemake >=8, need to set resources with each rule
+__default__:
+    mem: "5G"
+    cpus: "1"
+    name: "{rule}-{wildcards}"
+    log: "log/snake-{rule}-{wildcards}"
+    time: "24:00:00"
+# default:  2 hours, worked when I had 35 traits: 0.05 hours per trait
+
+# default:  20G, worked when I had 35 traits: 0.57G per trait  
+# added partition
+snp_table_chrom:
+    mem: "200G"
+    partition: "largemem"
+
+# default:  10G, worked when I had 35 traits: 0.28G per trait
+ld_prune_plink:
+    mem: "100G"
+
+# default:  20G, worked when I had 35 traits:  0.57G per trait
+# added partition
+R_ldsc_full:
+    mem: "200G"
+    partition: "largemem"
+
