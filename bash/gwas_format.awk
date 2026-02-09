@@ -1,5 +1,5 @@
 # USAGE:
-# awk -F"\t" -v compute_pval="TRUE" -v snp_name="rsid" -v beta_name="beta" -v se_name="se" -v A1_name="A1" -v A2_name="A2" -v chrom_name="chr" -v pos_name="pos" -v pval_name="p_value" -v ss_name="sample_size" -v af_name="allele_freq" -f gwas_format.awk input.tsv > output.tsv
+# awk -F"\t" -v compute_pval="TRUE" -v snp_name="rsid" -v beta_name="beta" -v se_name="se" -v A1_name="A1" -v A2_name="A2" -v pos_name="pos" -v pval_name="p_value" -v ss_name="sample_size" -v af_name="allele_freq" -f gwas_format.awk input.tsv > output.tsv
 
 BEGIN {
     OFS = "\t"
@@ -9,7 +9,6 @@ BEGIN {
     need_se = (se_name == "" ? "se" : se_name)
     need_A1 = (A1_name == "" ? "A1" : A1_name)
     need_A2 = (A2_name == "" ? "A2" : A2_name)
-    need_chrom = (chrom_name == "" ? "chrom" : chrom_name)
     need_pos = (pos_name == "" ? "pos" : pos_name)
     need_pval = (pval_name == "" ? "p_value" : pval_name)
     need_ss = (ss_name == "" ? "sample_size" : ss_name)
@@ -27,7 +26,6 @@ NR == 1 {
     $col[need_se]    = "se"
     $col[need_A1]    = "A1"
     $col[need_A2]    = "A2"
-    $col[need_chrom] = "chrom"
     $col[need_pos]   = "pos"
     $col[need_pval]  = "p_value"
     $col[need_ss]    = "sample_size"
@@ -40,34 +38,39 @@ NR == 1 {
 
 # --- Main per-row logic ---
 {
+    # Access allele columns dynamically:
+    a1 = $(col[need_A1])
+    a2 = $(col[need_A2])
+    snp = $(col[need_snp])
+
     # Uppercase alleles
-    $col["A1"] = toupper($col["A1"])
-    $col["A2"] = toupper($col["A2"])
+    a1 = toupper(a1)
+    a2 = toupper(a2)
 
     # Remove illegal alleles (skip non-ATCG)
-    if (!($col["A1"] ~ /^[ACGT]$/ && $col["A2"] ~ /^[ACGT]$/)) next
+    if (!(a1 ~ /^[ACGT]$/ && a2 ~ /^[ACGT]$/)) next
 
     # Remove ambiguous alleles (AT, TA, GC, CG)
-    if ( ($col["A1"]=="A" && $col["A2"]=="T") ||
-         ($col["A1"]=="T" && $col["A2"]=="A") ||
-         ($col["A1"]=="C" && $col["A2"]=="G") ||
-         ($col["A1"]=="G" && $col["A2"]=="C") ) next
+    if ( (a1=="A" && a2=="T") ||
+         (a1=="T" && a2=="A") ||
+         (a1=="C" && a2=="G") ||
+         (a1=="G" && a2=="C") ) next
 
     # Remove duplicate SNPs
-    snp_id = $col["snp"]
-    if (snp_seen[snp_id]++) next
+    #snp_id = $col["snp"]
+    if (snp_seen[snp]++) next
 
     # Optionally compute p-value if requested
     if (compute_pval == "TRUE") {
-        beta = $col["beta_hat"]
-        se   = $col["se"]
-        pval = $col["p_value"]
+        beta = $(col["need_beta"])
+        se   = $(col["need_se"])
+        pval = $(col["need_pval"])
         if (pval == "" || pval == "NA") {
             if (se != "" && se != "NA" && se != 0) {
                 z = beta/se
-                $col["p_value"] = p_value_from_z(z)
+                $col["need_pval"] = p_value_from_z(z)
             } else {
-                $col["p_value"] = "NA"
+                $col["need_pval"] = "NA"
             }
         }
     }
@@ -84,10 +87,10 @@ function compl_allele(x) {
 }
 
 function flip_alleles(   A1,A2,af,beta,A1_flip,A2_flip,new_A1,new_A2,new_beta,new_af) {
-    A1 = $col["A1"]
-    A2 = $col["A2"]
-    beta = $col["beta_hat"]
-    af = $col["allele_freq"]
+    A1 = $col["need_A1"]
+    A2 = $col["need_A2"]
+    beta = $col["need_beta"]
+    af = $col["need_af"]
 
     # flip strands
     A1_flip = A1; A2_flip = A2
@@ -101,11 +104,11 @@ function flip_alleles(   A1,A2,af,beta,A1_flip,A2_flip,new_A1,new_A2,new_beta,ne
     } else {
         new_A1 = A2_flip; new_A2 = A1_flip; new_beta = -beta
         new_af = (af != "") ? 1-af : "NA"
-    }
-    $col["A1"] = new_A1
-    $col["A2"] = new_A2
-    $col["beta_hat"] = new_beta
-    $col["allele_freq"] = new_af
+    }A1 = $col["need_A1"]
+    $col["need_A1"] = new_A1
+    $col["need_A2"] = new_A2
+    $col["need_beta"] = new_beta
+    $col["need_af"] = new_af
 }
 
 function p_value_from_z(z) {

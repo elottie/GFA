@@ -5,7 +5,7 @@
 
 # usage:
 # source get_col.sh
-# parse_header "$header" "$delimiter"      # build the associative array col_indices
+# parse_header "$file" "$delimiter"      # build the associative array col_indices
 # snp_col=$(get_col "SNP")         # retrieve the index for column named "SNP"
 # awk -v snp_col="$snp_col" ...
 
@@ -13,34 +13,38 @@
 # purpose: guess and return the file delimiter from the first line
 # usage: get_file_delimiter "myfile.csv"
 get_file_delimiter() {
-    local header="$1"
+    local file="$1"
+    local header
+    if [[ "$file" == *.gz ]]; then
+        header=$(zcat "$file" | head -n 1)
+    else
+        header=$(head -n 1 "$file")
+    fi
 
-    # list of candidate delimiters
-    local delimiters=(',' '\t' ';' '|' ':' ' ')
-
-    # choose the delimiter that appears the most to be the likely file delimiter
+    # list of candidate delimiters (actual tab, not string '\t')
+    local delimiters=(',' $'\t' ';' '|' ':' ' ')
     local max_count=0
     local guess=""
     local delim count
+
     for delim in "${delimiters[@]}"; do
-        if [[ "$delim" == '\t' ]]; then
-            count=$(awk -F'\t' '{print NF-1}' <<< "$header")
-        elif [[ "$delim" == ' ' ]]; then
-            count=$(grep -o " " <<< "$header" | wc -l)
-        else
-            count=$(grep -o "$delim" <<< "$header" | wc -l)
-        fi
+        count=$(awk -F"$delim" '{print NF-1}' <<< "$header")
         if (( count > max_count )); then
             max_count=$count
             guess=$delim
         fi
     done
 
-    # output the guessed delimiter, decode \t for scripts
-    if [[ "$guess" == '\t' ]]; then
-        echo $'\t'    # for scripts, actual tab
+    # Only normalize spaces if the guess is a run of spaces and not a tab
+    if [[ "$guess" =~ ^[[:space:]]+$ ]] && [[ "$guess" != $'\t' ]]; then
+        guess=" "
+    fi
+
+    # Print the delimiter (tabs and spaces correctly)
+    if [[ "$guess" == $'\t' ]]; then
+        echo $'\t'
     elif [[ "$guess" == ' ' ]]; then
-        echo " "      # for scripts, actual space
+        echo " "
     else
         echo "$guess"
     fi
@@ -48,9 +52,16 @@ get_file_delimiter() {
 
 # --- parse_header() ---
 # purpose: function to parse header and build associative array of column names (sets global col_indices)
-# usage: parse_header "$header" "$delimiter"
+# usage: parse_header "$file" "$delimiter"
 parse_header() {
-    local header="$1"
+    local file="$1"
+    local header
+    if [[ "$file" == *.gz ]]; then
+        header=$(zcat "$file" | head -n 1 || true)
+    else
+        header=$(head -n 1 "$file")
+    fi
+
     local delimiter="$2"
 
     # make sure header provided
