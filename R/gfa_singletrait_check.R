@@ -1,6 +1,4 @@
 gfa_singletrait_check <- function(fit, check_thresh = 0.9, params){
-  if(!dim %in% c(1, 2)) stop("dim must be 1 or 2 in gfa_duplicate_check.\n")
-
 
   D <- fit$F_pm
   nfactors <- ncol(D)
@@ -21,6 +19,7 @@ gfa_singletrait_check <- function(fit, check_thresh = 0.9, params){
   single_trait_index <- which(col_max > check_thresh & !fixed_ix)
 
   for(i in single_trait_index){
+    cat("Checking factor ", i, "\n")
     myfactor <- D[,i, drop = FALSE]
     myloadings <- L[, i, drop = FALSE]
     altfactor <- myfactor
@@ -32,15 +31,18 @@ gfa_singletrait_check <- function(fit, check_thresh = 0.9, params){
       new_order[i:(nfactors-1)] <- (i:(nfactors-1)) + 1
       new_order[nfactors] <- i
     }
-
-
     fitn <- flash_factors_remove(fit, i) %>%
             flash_factors_init(init = list(myloadings, altfactor),
                                ebnm_fn = list(params$ebnm_fn_L, params$ebnm_fn_F)) %>%
-            flash_factors_fix(., kset = i, which_dim = "factors") %>%
-            flash_factors_reorder(new_oder) %>%
+            #flash_factors_reorder(new_order) %>%
+            flash_factors_fix(., kset = nfactors, which_dim = "factors") %>%
             flash_backfit()
+
+    if(i < nfactors){
+      fitn <- flash_factors_reorder(fitn, new_order)
+    }
     if(fitn$elbo > fit$elbo){
+      message(paste0("Replacing factor ", i , " with single trait factor"))
       fit <- fitn
     }
   }
