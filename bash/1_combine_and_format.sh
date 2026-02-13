@@ -20,7 +20,7 @@ sample_size_tol="$4"      # sample size tolerance
 out="$5"                  # output file
 
 # temp workspace for generated files
-workdir="workdir_$$"
+workdir="$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$workdir"
 
 # just once, need to get rid of lovely windows carriage returns
@@ -82,17 +82,17 @@ for ((i=2; i<=2; i++)); do
     # Read info fields for trait i (awk column indexing, adjust as needed for TSV)
     f=$(awk -F, -v row="$i" -v col="$col_raw_data" 'NR==row {print $col}' "$gwas_info_file")
     snp=$(awk -F, -v row="$i" -v col="$col_snp" 'NR==row {print $col}' "$gwas_info_file")
-    pos=$(awk -F, -v row="$i" -v col="$col_pos" 'NR==row {print $col}' "$gwas_info_file")
+#    pos=$(awk -F, -v row="$i" -v col="$col_pos" 'NR==row {print $col}' "$gwas_info_file")
     chrn=$(awk -F, -v row="$i" -v col="$col_chrom" 'NR==row {print $col}' "$gwas_info_file")
     A1=$(awk -F, -v row="$i" -v col="$col_A1" 'NR==row {print $col}' "$gwas_info_file")
     A2=$(awk -F, -v row="$i" -v col="$col_A2" 'NR==row {print $col}' "$gwas_info_file")
-    beta_hat=$(awk -F, -v row="$i" -v col="$col_beta_hat" 'NR==row {print $col}' "$gwas_info_file")
-    se=$(awk -F, -v row="$i" -v col="$col_se" 'NR==row {print $col}' "$gwas_info_file")
-    pval=$(awk -F, -v row="$i" -v col="$col_pval" 'NR==row {print $col}' "$gwas_info_file")
-    af=$(awk -F, -v row="$i" -v col="$col_af" 'NR==row {print $col}' "$gwas_info_file")
-    sample_size=$(awk -F, -v row="$i" -v col="$col_sample_size" 'NR==row {print $col}' "$gwas_info_file")
-    effect_or=$(awk -F, -v row="$i" -v col="$col_effect_is_or" 'NR==row {print tolower($col)}' "$gwas_info_file")
-    pub_sample_size=$(awk -F, -v row="$i" -v col="$col_pub_sample_size" 'NR==row {print $col}' "$gwas_info_file")
+#    beta_hat=$(awk -F, -v row="$i" -v col="$col_beta_hat" 'NR==row {print $col}' "$gwas_info_file")
+#    se=$(awk -F, -v row="$i" -v col="$col_se" 'NR==row {print $col}' "$gwas_info_file")
+#    pval=$(awk -F, -v row="$i" -v col="$col_pval" 'NR==row {print $col}' "$gwas_info_file")
+#    af=$(awk -F, -v row="$i" -v col="$col_af" 'NR==row {print $col}' "$gwas_info_file")
+#    sample_size=$(awk -F, -v row="$i" -v col="$col_sample_size" 'NR==row {print $col}' "$gwas_info_file")
+#    effect_or=$(awk -F, -v row="$i" -v col="$col_effect_is_or" 'NR==row {print tolower($col)}' "$gwas_info_file")
+#    pub_sample_size=$(awk -F, -v row="$i" -v col="$col_pub_sample_size" 'NR==row {print $col}' "$gwas_info_file")
     trait_name=$(awk -F, -v row="$i" -v col="$col_name" 'NR==row {print $col}' "$gwas_info_file")
 
     trait_out="$workdir/${trait_name}.final.tsv"
@@ -114,17 +114,17 @@ for ((i=2; i<=2; i++)); do
          zcat "$f" \
              | awk -F"$delimiter" -v col="$chr_col" -v chrom_val="$chrom" -v OFS="\t" 'NR==1 || $col == chrom_val' \
              | awk -F"\t" -v OFS="\t" \
-                 -v compute_pval="TRUE" \
+#                 -v compute_pval="TRUE" \
                  -v snp_name="$snp" \
-                 -v beta_name="$beta_hat" \
-                 -v se_name="$se" \
+#                 -v beta_name="$beta_hat" \
+#                 -v se_name="$se" \
                  -v A1_name="$A1" \
                  -v A2_name="$A2" \
-                 -v pos_name="$pos" \
-                 -v pval_name="$pval" \
-                 -v ss_name="$sample_size" \
-                 -v af_name="$af" \
-                 -f gwas_format.awk
+#                 -v pos_name="$pos" \
+#                 -v pval_name="$pval" \
+#                 -v ss_name="$sample_size" \
+#                 -v af_name="$af" \
+                 -f remove_invalid_variants.awk
         ) > "$workdir/${trait_name}.gwasform.tsv"
              #| awk -F"\t" -v OFS="\t" \
              #    -v chrom="$chrom" \
