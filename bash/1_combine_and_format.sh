@@ -126,6 +126,9 @@ for ((i=2; i<=2; i++)); do
 #                 -v af_name="$af" \
                  -f remove_invalid_variants.awk
         ) > "$workdir/${trait_name}.gwasform.tsv"
+        # connect
+        bash make_snp_table.sh
+
              #| awk -F"\t" -v OFS="\t" \
              #    -v chrom="$chrom" \
              #    -v snp_name="$snp" \

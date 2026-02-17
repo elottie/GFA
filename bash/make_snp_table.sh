@@ -2,12 +2,63 @@
 
 gwas_info_file="../C100001554_And_Friends_3Metabolites.csv"
 
-# Output file
+read highest_min lowest_max < <(
+    awk -F',' 'NR==1 {
+        for(i=1;i<=NF;i++) {
+            if($i=="raw_data_path") f_col=i;
+            if($i=="sample_size") s_col=i;
+            if($i=="chrom") c_col=i;
+        }
+        next
+    }
+    {print $f_col "\t" $s_col "\t" $c_col}
+    ' "$gwas_info_file" \
+    | while IFS=$'\t' read file sample_col chrom_col; do
+        [[ "$file" == *.gz ]] && cat_cmd="zcat" || cat_cmd="cat"
+
+        # Get column numbers for sample size and chromosome
+        sample_num=$($cat_cmd "$file" | awk -F'\t' -v col="$sample_col" 'NR==1{for(i=1;i<=NF;i++) if($i==col) print i; exit}')
+        chr_num=$($cat_cmd "$file" | awk -F'\t' -v col="$chrom_col" 'NR==1{for(i=1;i<=NF;i++) if($i==col) print i; exit}')
+
+        # Compute median for chromosome 19 sample sizes
+        $cat_cmd "$file" | awk -F'\t' -v ss_col="$sample_num" -v chr_col="$chr_num" '
+            NR==1 {next}
+            $chr_col == "19" && $ss_col != "" && $ss_col ~ /^[0-9.]+$/ {vals[++c]=$ss_col}
+            END {
+                if (c > 0) {
+                    n = asort(vals)
+                    if (n % 2) {
+                        med=vals[int(n/2)+1]
+                    } else {
+                        med=(vals[int(n/2)]+vals[int(n/2)+1])/2
+                    }
+                    low = med * 0.9
+                    high = med * 1.1
+                    print low, high
+                }
+            }
+        '
+    done \
+    | awk '
+        BEGIN {highest_min=0; lowest_max=""}
+        {
+            low=$1
+            high=$2
+            if(low > highest_min) highest_min = low
+            if(lowest_max == "" || high < lowest_max) lowest_max = high
+        }
+        END {print highest_min, lowest_max}
+    '
+)
+
+echo "highest_min: $highest_min"
+echo "lowest_max: $lowest_max"
+
+# Step 2: Build SNP table with extra flag column
 output="chr19_snp_table.tsv"
 
-# Print header first, then append pipeline output
 {
-    echo -e "snp\tntraits\tminmaf\tminss\tmaxss"
+    echo -e "snp\tntraits\tminmaf\tminss\tmaxss\tss_range_flag\ttrait_flag\tmaf_flag"
 
     awk -F',' '
     NR==1 {
@@ -50,7 +101,7 @@ output="chr19_snp_table.tsv"
             'NR > 1 && $chrom_col == "19" { print $snp_col "\t"trait"\t"$maf_col"\t"$ss_col }'
 
     done \
-    | awk -F'\t' '
+    | awk -F'\t' -v highest_min="$highest_min" -v lowest_max="$lowest_max" '
     {
       snp=$1
       trait=$2
@@ -65,9 +116,11 @@ output="chr19_snp_table.tsv"
       for(snp in traits) {
         ntraits = 0
         for(trait in traits[snp]) ntraits++
-        printf "%s\t%s\t%.5f\t%s\t%s\n", snp, ntraits, minmaf[snp], minss[snp], maxss[snp]
+        flag = ((minss[snp] >= highest_min && maxss[snp] <= lowest_max) ? 1 : 0)
+        traitflag = (ntraits == 3 ? 1 : 0)
+        maf_flag = (minmaf[snp] > 0.05 ? 1 : 0)
+        printf "%s\t%s\t%.5f\t%s\t%s\t%s\t%s\t%s\n", snp, ntraits, minmaf[snp], minss[snp], maxss[snp], flag, traitflag, maf_flag
       }
     }
     '
-
 } > "$output"
