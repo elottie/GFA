@@ -18,7 +18,7 @@ gfa_wrapup <- function(fit, method, scale = NULL, nullcheck = FALSE){
       return(FALSE)})
   }
 
-  if(length(fixed_ix) > 0){
+  if(any(fixed_ix)){
     fixed_ix <- which(fit$flash_fit$fix.dim %>% sapply(., function(x){!is.null(x)}))
     if(length(fixed_ix) > 0){
       F_hat <- fit$F_pm[,-fixed_ix, drop=FALSE]
