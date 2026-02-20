@@ -57,7 +57,8 @@ R_ldsc <- function(Z_hat,
                    make_well_conditioned = TRUE,
                    cond_num = 1e5-1,
                    blocks = NULL,
-                   ncores = 1){
+                   ncores = 1,
+                   comparisons = NULL){
   M <- ncol(Z_hat)
   J <- nrow(Z_hat)
   stopifnot(class(ldscores) == "numeric")
@@ -69,20 +70,20 @@ R_ldsc <- function(Z_hat,
     N <- matrix(rep(N, each = J), nrow = J)
   }
 
-  # h2 <- lapply(1:M, function(m){
-  #   ix <- which(!is.na(Z_hat[,m]))
-  #   snp_ldsc(ld_score = ldscores[ix], ld_size = ld_size, chi2 = Z_hat[ix,m]^2, sample_size = N[ix,m], blocks = NULL)
-  # })
-  res <- expand.grid(trait1 = 1:M, trait2 = 1:M) %>%
-    filter(trait1 <= trait2)
+  if(is.null(comparisons)){
+    res <- expand.grid(trait1 = 1:M, trait2 = 1:M) %>%
+      filter(trait1 <= trait2)
+    return_matrix <- TRUE
+  }else{
+    if(make_well_conditioned){
+      stop("Cannot use make_well_conditioned and comparisons arguement together.")
+    }
+    res <- comparisons
+    names(res) <- c("trait1", "trait2")
+    return_matrix <- FALSE
+  }
 
   vals <- map2(res$trait1, res$trait2, function(i, j){
-    #cat(i, j, "\n")
-    # if(i == j){
-    #   ix <- which(!is.na(Z_hat[,i]))
-    #   h2 <- snp_ldsc(ld_score = ldscores[ix], ld_size = ld_size, chi2 = Z_hat[ix,i]^2, sample_size = N[ix,i], blocks = blocks)
-    #   return(c(h2, 1))
-    # }
     ix <- which(!is.na(Z_hat[,i]) & !is.na(Z_hat[,j]))
     rg <- ldsc_rg(ld_score = ldscores[ix], ld_size = ld_size,
             z1 = Z_hat[ix,i], z2 = Z_hat[ix,j],
@@ -96,25 +97,32 @@ R_ldsc <- function(Z_hat,
 
   val_int <- map(vals, 1) %>% unlist()
 
-  res$value <- val_int
-  res_copy <- filter(res, trait1 != trait2) %>%
-    rename(n1c = trait2, n2c = trait1) %>%
-    rename(trait1 = n1c, trait2 = n2c)
+  res$intercept <- val_int
 
-  Se <- bind_rows(res, res_copy)  %>%
-    reshape2::dcast(trait1 ~ trait2, value.var = "value")
-  Se <- as.matrix(Se[,-1])
-  colnames(Se) <- rownames(Se) <- NULL
+  if(return_matrix){
+    res_copy <- filter(res, trait1 != trait2) %>%
+      rename(n1c = trait2, n2c = trait1) %>%
+      rename(trait1 = n1c, trait2 = n2c)
 
-  if(make_well_conditioned){
-    #Se <- condition(Se, cond_num)
-    Se <- Matrix::nearPD(Se, corr = FALSE, keepDiag = TRUE,
+    Se <- bind_rows(res, res_copy)  %>%
+      reshape2::dcast(trait1 ~ trait2, value.var = "intercept")
+    Se <- as.matrix(Se[,-1])
+    colnames(Se) <- rownames(Se) <- NULL
+
+
+    if(make_well_conditioned){
+      #Se <- condition(Se, cond_num)
+      Se <- Matrix::nearPD(Se, corr = FALSE, keepDiag = TRUE,
                          posd.tol = 1/cond_num)$mat
-    Se <- as.matrix(Se)
+      Se <- as.matrix(Se)
+    }
+    ret <- list("Se" = Se)
+  }else{
+    ret <- res
   }
 
   if(!return_gencov & is.null(blocks)){
-    return(list("Se" = Se))
+    return(ret)
   }
 
   if(!is.null(blocks)){
@@ -128,65 +136,77 @@ R_ldsc <- function(Z_hat,
     val_gencor <- map(vals, 7) %>% unlist()
   }
 
-  ret <- list("Se" = Se)
-
   if(return_gencov){
     ## genetic covariance matrix
-    res$value <- val_gencov
-    res_copy <- filter(res, trait1 != trait2) %>%
-      rename(n1c = trait2, n2c = trait1) %>%
-      rename(trait1 = n1c, trait2 = n2c)
+    res$gencov <- val_gencov
 
-    Sg <- bind_rows(res, res_copy)  %>%
-      reshape2::dcast(trait1 ~ trait2, value.var = "value")
-    ret$Sg <- as.matrix(Sg[,-1])
-    colnames(ret$Sg) <- rownames(ret$Sg) <- NULL
+    if(return_matrix){
+      res_copy <- filter(res, trait1 != trait2) %>%
+        rename(n1c = trait2, n2c = trait1) %>%
+        rename(trait1 = n1c, trait2 = n2c)
 
+      Sg <- bind_rows(res, res_copy)  %>%
+        reshape2::dcast(trait1 ~ trait2, value.var = "gencov")
+      ret$Sg <- as.matrix(Sg[,-1])
+      colnames(ret$Sg) <- rownames(ret$Sg) <- NULL
+    }
 
     ## genetic correlation matrix
-    res$value <- val_gencor
-    res_copy <- filter(res, trait1 != trait2) %>%
-      rename(n1c = trait2, n2c = trait1) %>%
-      rename(trait1 = n1c, trait2 = n2c)
+    res$gencor <- val_gencor
 
-    Rg <- bind_rows(res, res_copy)  %>%
-      reshape2::dcast(trait1 ~ trait2, value.var = "value")
-    ret$Rg <- as.matrix(Rg[,-1])
-    colnames(ret$Rg) <- rownames(ret$Rg) <- NULL
+    if(return_matirx){
+      res_copy <- filter(res, trait1 != trait2) %>%
+        rename(n1c = trait2, n2c = trait1) %>%
+        rename(trait1 = n1c, trait2 = n2c)
+
+      Rg <- bind_rows(res, res_copy)  %>%
+        reshape2::dcast(trait1 ~ trait2, value.var = "gencor")
+      ret$Rg <- as.matrix(Rg[,-1])
+      colnames(ret$Rg) <- rownames(ret$Rg) <- NULL
+    }
   }
-  if(!is.null(blocks)){
-    res$value <- val_resid_ve^2
-    res_copy <- filter(res, trait1 != trait2) %>%
-      rename(n1c = trait2, n2c = trait1) %>%
-      rename(trait1 = n1c, trait2 = n2c)
 
-    Ve <- bind_rows(res, res_copy)  %>%
-      reshape2::dcast(trait1 ~ trait2, value.var = "value")
-    ret$Ve <- as.matrix(Ve[,-1])
-    colnames(ret$Ve) <- rownames(ret$Ve) <- NULL
+  if(!is.null(blocks)){
+    res$intercept_var <- val_resid_ve^2
+
+    if(return_matrix){
+      res_copy <- filter(res, trait1 != trait2) %>%
+        rename(n1c = trait2, n2c = trait1) %>%
+        rename(trait1 = n1c, trait2 = n2c)
+
+      Ve <- bind_rows(res, res_copy)  %>%
+        reshape2::dcast(trait1 ~ trait2, value.var = "intercept_var")
+      ret$Ve <- as.matrix(Ve[,-1])
+      colnames(ret$Ve) <- rownames(ret$Ve) <- NULL
+    }
     if(return_gencov){
       ## genetic covariance matrix
-      res$value <- val_gencov_ve^2
-      res_copy <- filter(res, trait1 != trait2) %>%
-        rename(n1c = trait2, n2c = trait1) %>%
-        rename(trait1 = n1c, trait2 = n2c)
+      res$gencov_var <- val_gencov_ve^2
 
-      Vg <- bind_rows(res, res_copy)  %>%
-        reshape2::dcast(trait1 ~ trait2, value.var = "value")
-      ret$Vg <- as.matrix(Vg[,-1])
-      colnames(ret$Vg) <- rownames(ret$Vg) <- NULL
+      if(return_matrix){
+        res_copy <- filter(res, trait1 != trait2) %>%
+          rename(n1c = trait2, n2c = trait1) %>%
+          rename(trait1 = n1c, trait2 = n2c)
 
+        Vg <- bind_rows(res, res_copy)  %>%
+          reshape2::dcast(trait1 ~ trait2, value.var = "gencov_var")
+        ret$Vg <- as.matrix(Vg[,-1])
+        colnames(ret$Vg) <- rownames(ret$Vg) <- NULL
+      }
 
       ## genetic correlation matrix
-      res$value <- val_gencor_ve^2
-      res_copy <- filter(res, trait1 != trait2) %>%
-        rename(n1c = trait2, n2c = trait1) %>%
-        rename(trait1 = n1c, trait2 = n2c)
+      res$gencor_var <- val_gencor_ve^2
 
-      VRg <- bind_rows(res, res_copy)  %>%
-        reshape2::dcast(trait1 ~ trait2, value.var = "value")
-      ret$VRg <- as.matrix(VRg[,-1])
-      colnames(ret$VRg) <- rownames(ret$VRg) <- NULL
+      if(return_matrix){
+        res_copy <- filter(res, trait1 != trait2) %>%
+          rename(n1c = trait2, n2c = trait1) %>%
+          rename(trait1 = n1c, trait2 = n2c)
+
+        VRg <- bind_rows(res, res_copy)  %>%
+          reshape2::dcast(trait1 ~ trait2, value.var = "gencor_var")
+        ret$VRg <- as.matrix(VRg[,-1])
+        colnames(ret$VRg) <- rownames(ret$VRg) <- NULL
+      }
     }
   }
   return(ret)
