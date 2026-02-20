@@ -78,6 +78,12 @@ R_ldsc <- function(Z_hat,
     if(make_well_conditioned){
       stop("Cannot use make_well_conditioned and comparisons arguement together.")
     }
+    if(!ncol(comparisons) == 1){
+      stop("comparisons should have two columns")
+    }
+    if(! (all(comparisons[,1] %in% 1:M) & all(comparisons[,2] %in% 1:M))){
+      stop(paste0("comparisons contains values out of range 1 to ", M))
+    }
     res <- comparisons
     names(res) <- c("trait1", "trait2")
     return_matrix <- FALSE
