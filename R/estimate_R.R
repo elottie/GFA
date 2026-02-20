@@ -95,23 +95,12 @@ R_ldsc <- function(Z_hat,
     rg
   })
 
-  val_int <- map(vals, 1) %>% unlist()
-
-  res$intercept <- val_int
+  res$intercept <- map(vals, 1) %>% unlist()
 
   if(return_matrix){
-    res_copy <- filter(res, trait1 != trait2) %>%
-      rename(n1c = trait2, n2c = trait1) %>%
-      rename(trait1 = n1c, trait2 = n2c)
-
-    Se <- bind_rows(res, res_copy)  %>%
-      reshape2::dcast(trait1 ~ trait2, value.var = "intercept")
-    Se <- as.matrix(Se[,-1])
-    colnames(Se) <- rownames(Se) <- NULL
-
+    Se <- make_symm_matrix(res, "trait1", "trait2", "intercept")
 
     if(make_well_conditioned){
-      #Se <- condition(Se, cond_num)
       Se <- Matrix::nearPD(Se, corr = FALSE, keepDiag = TRUE,
                          posd.tol = 1/cond_num)$mat
       Se <- as.matrix(Se)
@@ -139,79 +128,47 @@ R_ldsc <- function(Z_hat,
   if(return_gencov){
     ## genetic covariance matrix
     res$gencov <- val_gencov
-
-    if(return_matrix){
-      res_copy <- filter(res, trait1 != trait2) %>%
-        rename(n1c = trait2, n2c = trait1) %>%
-        rename(trait1 = n1c, trait2 = n2c)
-
-      Sg <- bind_rows(res, res_copy)  %>%
-        reshape2::dcast(trait1 ~ trait2, value.var = "gencov")
-      ret$Sg <- as.matrix(Sg[,-1])
-      colnames(ret$Sg) <- rownames(ret$Sg) <- NULL
-    }
-
-    ## genetic correlation matrix
     res$gencor <- val_gencor
-
-    if(return_matirx){
-      res_copy <- filter(res, trait1 != trait2) %>%
-        rename(n1c = trait2, n2c = trait1) %>%
-        rename(trait1 = n1c, trait2 = n2c)
-
-      Rg <- bind_rows(res, res_copy)  %>%
-        reshape2::dcast(trait1 ~ trait2, value.var = "gencor")
-      ret$Rg <- as.matrix(Rg[,-1])
-      colnames(ret$Rg) <- rownames(ret$Rg) <- NULL
+    if(return_matrix){
+      Sg <-make_symm_matrix(res, "trait1", "trait2", "gencov")
+      Rg <- make_symm_matrix(res, "trait1", "trait2", "gencor")
     }
   }
 
   if(!is.null(blocks)){
     res$intercept_var <- val_resid_ve^2
-
     if(return_matrix){
-      res_copy <- filter(res, trait1 != trait2) %>%
-        rename(n1c = trait2, n2c = trait1) %>%
-        rename(trait1 = n1c, trait2 = n2c)
-
-      Ve <- bind_rows(res, res_copy)  %>%
-        reshape2::dcast(trait1 ~ trait2, value.var = "intercept_var")
-      ret$Ve <- as.matrix(Ve[,-1])
-      colnames(ret$Ve) <- rownames(ret$Ve) <- NULL
+      Ve <- make_symm_matrix(res, "trait1", "trait2", "intercept_var")
     }
     if(return_gencov){
       ## genetic covariance matrix
       res$gencov_var <- val_gencov_ve^2
-
-      if(return_matrix){
-        res_copy <- filter(res, trait1 != trait2) %>%
-          rename(n1c = trait2, n2c = trait1) %>%
-          rename(trait1 = n1c, trait2 = n2c)
-
-        Vg <- bind_rows(res, res_copy)  %>%
-          reshape2::dcast(trait1 ~ trait2, value.var = "gencov_var")
-        ret$Vg <- as.matrix(Vg[,-1])
-        colnames(ret$Vg) <- rownames(ret$Vg) <- NULL
-      }
-
       ## genetic correlation matrix
       res$gencor_var <- val_gencor_ve^2
 
       if(return_matrix){
-        res_copy <- filter(res, trait1 != trait2) %>%
-          rename(n1c = trait2, n2c = trait1) %>%
-          rename(trait1 = n1c, trait2 = n2c)
-
-        VRg <- bind_rows(res, res_copy)  %>%
-          reshape2::dcast(trait1 ~ trait2, value.var = "gencor_var")
-        ret$VRg <- as.matrix(VRg[,-1])
-        colnames(ret$VRg) <- rownames(ret$VRg) <- NULL
+        Vg <- make_symm_matrix(res, "trait1", "trait2", "gencov_var")
+        VRg <- make_symm_matrix(res, "trait1", "trait2", "gencor_var")
       }
     }
+  }
+  if(!return_matrix){
+    ret <- res
   }
   return(ret)
 }
 
+
+make_symm_matrix <- function(x, row_name, col_name, value_name){
+  form <- as.formula(paste0(row_name, "~", col_name))
+  x <- dplyr::select(x, !!row_name, !!col_name, !!value_name)
+  x_copy <- dplyr::filter(x, .data[[row_name]] != .data[[col_name]])
+  names(x_copy) <- c(col_name, row_name, value_name)
+  x <- bind_rows(x, x_copy) %>% reshape2::dcast(form, value.var = value_name)
+  x <- as.matrix(x[, -1])
+  rownames(x) <- colnames(x) <- NULL
+  return(x)
+}
 
 #'@title Calculate matrix of error correlations using p-value threshold method.
 #'@param B_hat Matrix of effect size estimates
