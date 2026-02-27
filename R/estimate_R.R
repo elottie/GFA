@@ -78,7 +78,7 @@ R_ldsc <- function(Z_hat,
     if(make_well_conditioned){
       stop("Cannot use make_well_conditioned and comparisons arguement together.")
     }
-    if(!ncol(comparisons) == 1){
+    if(!ncol(comparisons) == 2){
       stop("comparisons should have two columns")
     }
     if(! (all(comparisons[,1] %in% 1:M) & all(comparisons[,2] %in% 1:M))){
