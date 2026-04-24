@@ -118,11 +118,14 @@ gwas_format <- function(X, snp, beta_hat, se, A1, A2,
   X <- remove_ambiguous(X, upper = TRUE)
   cat("Removed ", n-nrow(X), " variants with ambiguous strand.\n")
 
+  # make X into a data.table for I can do the new align_beta on it.  ideally this would be for everything
+  data.table::setDT(X)
+  
   cat("Flipping strand and effect allele so A1 is always A\n")
-  X <- align_beta(X, "beta_hat", "allele_freq", TRUE)
+  align_beta(X)
 
-
-  X <- X %>% select(chrom, pos, snp, A1, A2, beta_hat, se, p_value, sample_size, allele_freq)
+  # data table syntax
+  X <- X[, .(chrom, pos, snp, A1, A2, beta_hat, se, p_value, sample_size, allele_freq)]
 
   if(!missing(output_file)){
     cat("Writing out ", nrow(X), " variants to file.\n")
@@ -141,50 +144,6 @@ gwas_format <- function(X, snp, beta_hat, se, A1, A2,
 #   return(dat)
 # }
 
-#Flip signs and strands so that allele 1 is always A
-align_beta <- function(X, beta_hat_name, af_name, upper=TRUE){
-  flp = c("A" = "T", "G" = "C", "T" = "A",
-          "C" = "G", "a"  = "t", "t" = "a",
-          "c" = "g", "g" = "c")
-  if(upper){
-    X <- X %>% mutate( flip_strand = A1 == "T" | A2 == "T")
-  }else{
-    X <- X %>% mutate( flip_strand = A1 == "t" | A2 == "t")
-  }
-  if(missing(af_name)){
-    X <- mutate(X, af = NA)
-    af_name <- "tempaf"
-    af_missing <- TRUE
-  }else{
-    af_missing <- FALSE
-  }
-
-  X <- X %>% mutate(A1flp = case_when(flip_strand ~ flp[A1],
-                                      TRUE ~ A1),
-                    A2flp = case_when(flip_strand ~ flp[A2],
-                                      TRUE ~ A2),
-                    # afflp = case_when(flip_strand ~ 1-get(af_name),
-                    #                    TRUE ~ get(af_name)),
-                    tempbh = case_when(A1flp == "A" | A1flp == "a" ~ get(beta_hat_name),
-                                     TRUE ~ -1*get(beta_hat_name)),
-                    tempaf = case_when(A1flp == "A" | A1flp == "a" ~ get(af_name),
-                                       TRUE ~ 1-get(af_name))) %>%
-    select(-A1, -A2) %>%
-    select(-all_of(c(af_name, beta_hat_name))) %>%
-    mutate(A1 = case_when(A1flp == "A" | A1flp=="a" ~ A1flp,
-                          TRUE ~ A2flp),
-           A2 = case_when(A1flp == "A" | A1flp=="a" ~ A2flp,
-                          TRUE ~ A1flp)) %>%
-    select(-A1flp, -A2flp, -flip_strand)
-
-  ix <- which(names(X)== "tempbh")
-  names(X)[ix] <- beta_hat_name
-  ix <- which(names(X)== "tempaf")
-  names(X)[ix] <- af_name
-  if(af_missing) X <- select(X, -tempaf)
-  return(X)
-}
-
 remove_ambiguous <- function(X, upper=TRUE){
   if(upper){
     X <- X %>% dplyr::filter(!(A1 == "G" & A2 == "C") &
@@ -200,3 +159,61 @@ remove_ambiguous <- function(X, upper=TRUE){
   return(X)
 }
 
+# flip signs and strands so that allele 1 is always A
+# now modifies X in-place w/ data table for speed and memory savings
+# believe beta_hat and af are always the names assigned in gwas_format.  but kept for consistency w/ old func
+align_beta <- function(X, upper = TRUE,
+                          beta_col = "beta_hat",
+                          af_col   = "af") {
+
+  stopifnot(data.table::is.data.table(X))
+  stopifnot(all(c("A1", "A2") %in% names(X)))
+  stopifnot(beta_col %in% names(X))
+
+  flp <- c("A"="T","G"="C","T"="A","C"="G",
+           "a"="t","t"="a","c"="g","g"="c")
+
+  af_present <- af_col %in% names(X)
+  if (!af_present) {
+    X[, (af_col) := NA_real_]  # create af col temporarily so code can be uniform
+  }
+
+  # flip strands if we have Ts to get As
+  X[, ..__alignbeta_flip__ :=
+       if (upper) (A1 == "T" | A2 == "T") else (A1 == "t" | A2 == "t")]
+  X[, `:=`(
+    ..__alignbeta_A1flp__ = data.table::fifelse(..__alignbeta_flip__, flp[A1], A1),
+    ..__alignbeta_A2flp__ = data.table::fifelse(..__alignbeta_flip__, flp[A2], A2)
+  )]
+
+  # flag that is true if the A1 is A (we want)
+  X[, ..__alignbeta_condA__ := ..__alignbeta_A1flp__ %chin% c("A","a")]
+
+  # swap A1 and A2 if A1 is not A
+  X[, `:=`(
+    A1 = data.table::fifelse(..__alignbeta_condA__, ..__alignbeta_A1flp__, ..__alignbeta_A2flp__),
+    A2 = data.table::fifelse(..__alignbeta_condA__, ..__alignbeta_A2flp__, ..__alignbeta_A1flp__)
+  )]
+
+  # flip beta hats if the A1 is not A
+  # sd means subset of data (select just beta column)
+  X[, (beta_col) := {
+    b <- .SD[[1L]]
+    if (!is.numeric(b)) b <- as.numeric(b)
+    data.table::fifelse(..__alignbeta_condA__, b, -b)
+  }, .SDcols = beta_col]
+
+  # flip af if the A1 is not A
+  X[, (af_col) := {
+    p <- .SD[[1L]]
+    if (!is.numeric(p)) p <- as.numeric(p)
+    data.table::fifelse(..__alignbeta_condA__, p, 1 - p)
+  }, .SDcols = af_col]
+
+  # delete columns we don't need anymore
+  X[, c("..__alignbeta_flip__", "..__alignbeta_A1flp__", "..__alignbeta_A2flp__", "..__alignbeta_condA__") := NULL]
+  if (!af_present) X[, (af_col) := NULL]
+
+  # since these are in-place mods, we can call func w/o assignment to new var.  but nobody wants to see the whole table
+  return(invisible(X))
+}
