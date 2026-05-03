@@ -119,7 +119,7 @@ gwas_format <- function(X, snp, beta_hat, se, A1, A2,
   cat("Removed ", n-nrow(X), " variants with ambiguous strand.\n")
 
   # make X into a data.table for I can do the new align_beta on it.  ideally this would be for everything
-  data.table::setDT(X)
+  setDT(X)
   
   cat("Flipping strand and effect allele so A1 is always A\n")
   align_beta(X)
@@ -129,7 +129,8 @@ gwas_format <- function(X, snp, beta_hat, se, A1, A2,
 
   if(!missing(output_file)){
     cat("Writing out ", nrow(X), " variants to file.\n")
-    write_tsv(X, path = output_file)
+    # changed from path= to file=
+    write_tsv(X, file = output_file)
     return(NULL)
   }
   cat("Returning ", nrow(X), " variants.\n")
@@ -166,7 +167,7 @@ align_beta <- function(X, upper = TRUE,
                           beta_col = "beta_hat",
                           af_col   = "af") {
 
-  stopifnot(data.table::is.data.table(X))
+  stopifnot(is.data.table(X))
   stopifnot(all(c("A1", "A2") %in% names(X)))
   stopifnot(beta_col %in% names(X))
 
@@ -182,8 +183,8 @@ align_beta <- function(X, upper = TRUE,
   X[, ..__alignbeta_flip__ :=
        if (upper) (A1 == "T" | A2 == "T") else (A1 == "t" | A2 == "t")]
   X[, `:=`(
-    ..__alignbeta_A1flp__ = data.table::fifelse(..__alignbeta_flip__, flp[A1], A1),
-    ..__alignbeta_A2flp__ = data.table::fifelse(..__alignbeta_flip__, flp[A2], A2)
+    ..__alignbeta_A1flp__ = fifelse(..__alignbeta_flip__, flp[A1], A1),
+    ..__alignbeta_A2flp__ = fifelse(..__alignbeta_flip__, flp[A2], A2)
   )]
 
   # flag that is true if the A1 is A (we want)
@@ -191,8 +192,8 @@ align_beta <- function(X, upper = TRUE,
 
   # swap A1 and A2 if A1 is not A
   X[, `:=`(
-    A1 = data.table::fifelse(..__alignbeta_condA__, ..__alignbeta_A1flp__, ..__alignbeta_A2flp__),
-    A2 = data.table::fifelse(..__alignbeta_condA__, ..__alignbeta_A2flp__, ..__alignbeta_A1flp__)
+    A1 = fifelse(..__alignbeta_condA__, ..__alignbeta_A1flp__, ..__alignbeta_A2flp__),
+    A2 = fifelse(..__alignbeta_condA__, ..__alignbeta_A2flp__, ..__alignbeta_A1flp__)
   )]
 
   # flip beta hats if the A1 is not A
@@ -200,14 +201,14 @@ align_beta <- function(X, upper = TRUE,
   X[, (beta_col) := {
     b <- .SD[[1L]]
     if (!is.numeric(b)) b <- as.numeric(b)
-    data.table::fifelse(..__alignbeta_condA__, b, -b)
+    fifelse(..__alignbeta_condA__, b, -b)
   }, .SDcols = beta_col]
 
   # flip af if the A1 is not A
   X[, (af_col) := {
     p <- .SD[[1L]]
     if (!is.numeric(p)) p <- as.numeric(p)
-    data.table::fifelse(..__alignbeta_condA__, p, 1 - p)
+    fifelse(..__alignbeta_condA__, p, 1 - p)
   }, .SDcols = af_col]
 
   # delete columns we don't need anymore
