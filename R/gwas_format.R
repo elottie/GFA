@@ -180,20 +180,20 @@ align_beta <- function(X, upper = TRUE,
   }
 
   # flip strands if we have Ts to get As
-  X[, ..__alignbeta_flip__ :=
+  X[, flip_strands_flag :=
        if (upper) (A1 == "T" | A2 == "T") else (A1 == "t" | A2 == "t")]
   X[, `:=`(
-    ..__alignbeta_A1flp__ = fifelse(..__alignbeta_flip__, flp[A1], A1),
-    ..__alignbeta_A2flp__ = fifelse(..__alignbeta_flip__, flp[A2], A2)
+    flipped_A1 = fifelse(flip_strands_flag, flp[A1], A1),
+    flipped_A2 = fifelse(flip_strands_flag, flp[A2], A2)
   )]
 
   # flag that is true if the A1 is A (we want)
-  X[, ..__alignbeta_condA__ := ..__alignbeta_A1flp__ %chin% c("A","a")]
+  X[, A1_A_flag := flipped_A1 %chin% c("A","a")]
 
   # swap A1 and A2 if A1 is not A
   X[, `:=`(
-    A1 = fifelse(..__alignbeta_condA__, ..__alignbeta_A1flp__, ..__alignbeta_A2flp__),
-    A2 = fifelse(..__alignbeta_condA__, ..__alignbeta_A2flp__, ..__alignbeta_A1flp__)
+    A1 = fifelse(A1_A_flag, flipped_A1, flipped_A2),
+    A2 = fifelse(A1_A_flag, flipped_A2, flipped_A1)
   )]
 
   # flip beta hats if the A1 is not A
@@ -201,18 +201,18 @@ align_beta <- function(X, upper = TRUE,
   X[, (beta_col) := {
     b <- .SD[[1L]]
     if (!is.numeric(b)) b <- as.numeric(b)
-    fifelse(..__alignbeta_condA__, b, -b)
+    fifelse(A1_A_flag, b, -b)
   }, .SDcols = beta_col]
 
   # flip af if the A1 is not A
   X[, (af_col) := {
     p <- .SD[[1L]]
     if (!is.numeric(p)) p <- as.numeric(p)
-    fifelse(..__alignbeta_condA__, p, 1 - p)
+    fifelse(A1_A_flag, p, 1 - p)
   }, .SDcols = af_col]
 
   # delete columns we don't need anymore
-  X[, c("..__alignbeta_flip__", "..__alignbeta_A1flp__", "..__alignbeta_A2flp__", "..__alignbeta_condA__") := NULL]
+  X[, c("flip_strands_flag", "flipped_A1", "flipped_A2", "A1_A_flag") := NULL]
   if (!af_present) X[, (af_col) := NULL]
 
   # since these are in-place mods, we can call func w/o assignment to new var.  but nobody wants to see the whole table
