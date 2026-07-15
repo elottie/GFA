@@ -1,10 +1,5 @@
 #'@export
 gfa_wrapup <- function(fit, method, scale = NULL, num_single_fixed = 0, nullcheck = FALSE){
-
-  if(nullcheck){
-    fit <- fit %>% flash_nullcheck(remove = FALSE) # remove = FALSE to save indices
-  }
-
   F_hat_est <- fit$F_pm
   L_hat_est <- fit$L_pm
 
@@ -21,27 +16,32 @@ gfa_wrapup <- function(fit, method, scale = NULL, num_single_fixed = 0, nullchec
   if(length(fix.dim) == 0){
     fixed_ix <- rep(FALSE, nfactor)
   }else{
-    fixed_ix <- fix.dim %>% sapply(., function(x){
+    fixed_ix <- sapply(fix.dim, function(x){
       if(is.null(x)) return(FALSE)
       if(x == 2) return(TRUE)
       return(FALSE)})
   }
 
+  est_ix <- which(!fixed_ix)
+  n_est <- length(est_ix)
+  if(nullcheck){
+    fit <- fit %>% flash_nullcheck(tol = 0, remove = FALSE) # remove = FALSE to save indices
+  }
+
+
   if(any(fixed_ix)){
-    est_ix <- which(!fixed_ix)
     if(num_single_fixed > 0){
-      single_ix <- (max(est_ix) + 1):(max(est_ix) + num_single_fixed)
-      if(max(single_ix) < nfactor){
-        error_ix <- (max(single_ix) + 1):length(fixed_ix)
+      single_ix <- (n_est + 1):(n_est + num_single_fixed)
+      if((n_est + num_single_fixed) < nfactor){
+        error_ix <- (n_est + num_single_fixed + 1):nfactor
       }else{
         error_ix <- NULL
       }
     }else{
-      error_ix <- (max(est_ix) + 1):length(fixed_ix)
+      error_ix <- (n_est + 1):nfactor
       single_ix <- NULL
     }
   }else{
-    est_ix <- 1:nfactor
     single_ix <- NULL
     error_ix <- NULL
   }
@@ -67,8 +67,6 @@ gfa_wrapup <- function(fit, method, scale = NULL, num_single_fixed = 0, nullchec
   if(!is.null(single_ix)){
     F_hat_single <- F_hat_est[, single_ix, drop = FALSE]
   }
-
-
 
   ret <- list(fit=fit,
               method = method,
