@@ -36,6 +36,9 @@ gfa_singletrait_check <- function(fit, check_thresh = 0.9, params){
 
     Dn <- norm_cols(D)$A
     col_max <- apply(abs(Dn), 2, max)
+    print(paste('col_max:',col_max))
+    print(paste('check_thresh:',check_thresh))
+    print('to be single trait, must have col_max > check_thresh and fixed_ix = F')
 
     single_trait_index <- which(col_max > check_thresh & !fixed_ix)
     print(paste('first time we see single_trait_index:',single_trait_index))
