@@ -168,13 +168,8 @@ gfa_fit <- function(Z_hat = NULL,
                                dim = 2,
                                check_thresh = params$duplicate_check_thresh)
 
-    print(paste('single_check value is:',single_check))
     if(single_check){
-      print('single_check was true, so entering gfa_singletrait_check function')
       fit <- gfa_singletrait_check(fit, check_thresh = params$singletrait_check_thresh, params = params)
-      print('printing str of fit from gfa_singletrait_check:')
-      print(str(fit,max.level=1))
-      print(paste('from that fit, num_single_fixed:',fit$num_single_fixed))
 
       ret <- gfa_wrapup(fit,
                         method = method,

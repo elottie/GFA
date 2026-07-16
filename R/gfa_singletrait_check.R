@@ -31,23 +31,15 @@ gfa_singletrait_check <- function(fit, check_thresh = 0.9, params){
          if(x == 2) return(TRUE)
          return(FALSE)})
     }
-    print(paste('fixed_ix from flashier:',fixed_ix))
-
 
     Dn <- norm_cols(D)$A
     col_max <- apply(abs(Dn), 2, max)
-    print(paste('col_max:',col_max))
-    print(paste('check_thresh:',check_thresh))
-    print('to be single trait, must have col_max > check_thresh and fixed_ix = F')
 
     single_trait_index <- which(col_max > check_thresh & !fixed_ix)
-    print(paste('first time we see single_trait_index:',single_trait_index))
     single_traits <- sapply(single_trait_index, function(i){
       which.max(abs(Dn[,i]))
     })
-    print(paste('single_traits:',single_traits))
     single_trait_index <- single_trait_index[!single_traits %in% checked_trait]
-    print(paste('second time we see single_trait_index:',single_trait_index))
     if(length(single_trait_index) == 0){
       if(upd_this_round){
         checked_trait <- c()
