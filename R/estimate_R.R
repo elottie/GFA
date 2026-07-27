@@ -155,6 +155,7 @@ R_ldsc <- function(Z_hat,
     if(return_matrix){
       Sg <-make_symm_matrix(res, "trait1", "trait2", "gencov", traits_ordered=colnames(Z_hat))
       Rg <- make_symm_matrix(res, "trait1", "trait2", "gencor", traits_ordered=colnames(Z_hat))
+      ret <- c(ret, list("Sg" = Sg, "Rg" = Rg))
     }
   }
 
@@ -172,6 +173,7 @@ R_ldsc <- function(Z_hat,
       if(return_matrix){
         Vg <- make_symm_matrix(res, "trait1", "trait2", "gencov_var", traits_ordered=colnames(Z_hat))
         VRg <- make_symm_matrix(res, "trait1", "trait2", "gencor_var", traits_ordered=colnames(Z_hat))
+        ret <- c(ret, list("Vg" = Vg, "VRg" = VRg))
       }
     }
   }
