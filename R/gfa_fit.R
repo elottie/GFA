@@ -163,7 +163,7 @@ gfa_fit <- function(Z_hat = NULL,
     if(single_check){
       fit <- gfa_singletrait_check(fit, check_thresh = params$singletrait_check_thresh, params = params)
       fit <- add_single_trait_factor_prewrapup(fit = fit$fit, params, fit$n_single, fit$n_error,  1:nrow(fit$fit$F_pm))
-      ret <- gfa_wrapup(fit$fit,
+      ret <- gfa_wrapup(fit,
                         method = method,
                         scale = dat$scale,
                         n_single = fit$n_single,
