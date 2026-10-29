@@ -77,7 +77,11 @@ add_single_trait_factor_prewrapup <- function(fit, params, num_single_fixed, num
   }
 
   n_est <- fit$n_factors - num_single_fixed - num_error_fixed
-  if(length(n_est) > 0){
+  message(paste('number of factors is:',fit$n_factors))
+  message(paste('number of single fixed factors is:',num_single_fixed))
+  message(paste('number of error fixed factors is:',num_error_fixed))
+  message(paste('number of estimated factors is:',n_est))
+  if(n_est > 0){
     est_ix <- 1:n_est
   }else{
     est_ix <- c()
@@ -91,7 +95,9 @@ add_single_trait_factor_prewrapup <- function(fit, params, num_single_fixed, num
       warning("Requested single-trait factors are already present")
       return(fit)
     }
+    message(paste('starting ix was:',ix))
     ix <- ix[!ix %in% single_traits]
+    message(paste('new ix is:',ix))
   }else{
     single_ix <- c()
   }

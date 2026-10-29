@@ -161,27 +161,27 @@ gfa_fit <- function(Z_hat = NULL,
                                check_thresh = params$duplicate_check_thresh)
 
     if(single_check){
-      cat('* Checking for single trait in gfa_fit')
+      print('* Checking for single trait in gfa_fit')
       fit <- gfa_singletrait_check(fit, check_thresh = params$singletrait_check_thresh, params = params)
-      print(class(fit))
-      print(str(fit))
-      cat('* Entering add_single_trait_factor_prewrapup')
+      print(paste('... fit inherits class flash:',inherits(fit, "flash")))
+      print(str(fit,max.level=3))
+      print('* Entering add_single_trait_factor_prewrapup')
       fit <- add_single_trait_factor_prewrapup(fit = fit$fit, params, fit$n_single, fit$n_error,  1:nrow(fit$fit$F_pm))
-      print(class(fit))
-      print(class(fit$fit))
-      print(str(fit))
-      cat('* Entering gfa_wrapup')
+      print(paste('... fit inherits class flash:',inherits(fit, "flash")))
+      print(paste('... fit$fit inherits class flash:',inherits(fit$fit, "flash")))
+      print(str(fit,max.level=3))
+      print('* Entering gfa_wrapup')
       ret <- gfa_wrapup(fit$fit,
                         method = method,
                         scale = dat$scale,
                         n_single = fit$n_single,
                         nullcheck = TRUE)
     }else{
-      cat('* Not checking for single trait in gfa_fit')
-      print(class(fit))
-      pritn(class(fit$fit))
-      print(str(fit))
-      cat('* Entering gfa_wrapup')
+      print('* Not checking for single trait in gfa_fit')
+      print(paste('... fit inherits class flash:',inherits(fit, "flash")))
+      print(paste('... fit$fit inherits class flash:',inherits(fit$fit, "flash")))
+      print(str(fit,max.level=3))
+      print('* Entering gfa_wrapup')
       ret <- gfa_wrapup(fit$fit,
                         method = method,
                         scale = dat$scale,

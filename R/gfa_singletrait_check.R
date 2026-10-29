@@ -47,12 +47,19 @@ gfa_singletrait_check <- function(fit, check_thresh = 0.9, params){
                                ebnm_fn = list(params$ebnm_fn_L, params$ebnm_fn_F)) %>%
             flash_factors_fix(., kset = nfactor, which_dim = "factors") %>%
             flash_backfit()
+        message(paste(
+            "factor:", i,
+            "trait:", k,
+            "nonzero entries:", sum(abs(myfactor) > 1e-8),
+            "ELBO change:", fitn$elbo - fit$elbo
+        ))
         ## arrange back into original order
         if(i < nfactor){
-          new_order <- c(1:(i-1), nfactor, i:(nfactor-1))
+          #new_order <- c(1:(i-1), nfactor, i:(nfactor-1))
+          new_order <- c(seq_len(i - 1L),nfactor,seq.int(i, nfactor - 1L))  # REPLACED, only matters for i=1 tho and then was fine
           fitn <- flash_factors_reorder(fitn, new_order)
         }
-        if(fitn$elbo > fit$elbo){
+        if(fitn$elbo > fit$elbo){  # change to >= ??? if fac i already single-trait, elbo may be lower by removing it, so we do not make the fac single-trait here
           message(paste0("Replacing factor ", i , " with single trait factor"))
           fit <- fitn
           new_single_fixed_ix <- c(new_single_fixed_ix, i)
