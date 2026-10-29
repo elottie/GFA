@@ -2,20 +2,20 @@
 gfa_nullcheck <- function(fit, num_single_fixed, num_error_fixed){
   stopifnot(inherits(fit, "flash"))
   n_est <- fit$n_factors - num_single_fixed - num_error_fixed
-  if(length(n_est) > 0){
+  if(n_est > 0){
     est_ix <- 1:n_est
     n <- n_est
   }else{
     est_ix <- c()
     n <- 0
   }
-  if(length(num_single_fixed) > 0){
+  if(num_single_fixed > 0){
     single_ix <- n + (1:num_single_fixed)
     n <- n + num_single_fixed
   }else{
     single_ix <- c()
   }
-  if(length(num_error_fixed) > 0){
+  if(num_error_fixed > 0){
     error_ix <- n + (1:num_error_fixed)
   }else{
     error_ix <- c()
